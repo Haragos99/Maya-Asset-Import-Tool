@@ -11,9 +11,6 @@ Browse asset directories, preview files as icons, and generate thumbnails direct
 - Icon / thumbnail view for assets
 - Automatic thumbnail lookup with fallback to default icons
 - Thumbnail generation with progress bar
-- Flat or mirrored thumbnail folder structure
-- Designed for Maya (uses `maya.cmds`)
-- Developer-friendly reload workflow
 
 ---
 
@@ -24,6 +21,9 @@ Browse asset directories, preview files as icons, and generate thumbnails direct
 - PySide (included with Maya)
 
 ---
+## Result
+![Nav](resources/nav.png)
+
 
 ## Installation (User)
 
@@ -44,5 +44,5 @@ This tool is under active development. Current improvements include:
 - **UI enhancements:** progress bars in-panel and floating, improved focus handling, sorting/filtering assets   
 
 ### Planned Features
-- Quick import of selected assets into Maya  
+- Quick import of selected assets into Maya Option button 
 - Model analysis: check for missing geometry, unsupported formats, or errors before import  
