@@ -5,8 +5,6 @@ __pycache__/
 
 # Thumbnails & cache
 thumbnails/
-*.png
-*.jpg
 *.cache/
 
 # Maya temp files
