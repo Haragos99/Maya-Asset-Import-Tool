@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Thumbnails & cache
+thumbnails/
+*.png
+*.jpg
+*.cache/
+
+# Maya temp files
+*.ma1
+*.ma2
+*.mb1
+*.mb2
+
+# OS files
+.DS_Store
+Thumbs.db
