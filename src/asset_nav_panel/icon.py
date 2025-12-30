@@ -1,8 +1,7 @@
 try:    # older DCC versions
-    from PySide2 import QtWidgets, QtGui
+    from PySide2 import QtWidgets, QtCore, QtGui
 except: # newer DCC versions
-    from PySide6 import QtWidgets, QtGui
-
+    from PySide6 import QtWidgets, QtCore, QtGui
 import os
 from .utils import flat_thumbnail_name
 
@@ -13,9 +12,8 @@ class CustomIconProvider(QtWidgets.QFileIconProvider):
         self.icon_size = icon_size
 
     def icon(self, fileInfo):
-        if fileInfo.isFile():
+        if  isinstance(fileInfo, QtCore.QFileInfo) and fileInfo.isFile():
             file_path = fileInfo.absoluteFilePath()
-
             name = flat_thumbnail_name(file_path)
             thumb_path = os.path.join(self.thumbnail_root, name)
             
