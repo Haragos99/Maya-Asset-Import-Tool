@@ -1,13 +1,21 @@
 
 try:    # older DCC versions
     from PySide2 import QtWidgets, QtCore
+    from PySide2.QtMultimedia import QMediaPlayer, QAudioOutput
+    from PySide2.QtMultimediaWidgets import QVideoWidget
 except: # newer DCC versions
     from PySide6 import QtWidgets, QtCore
+    from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
+    from PySide6.QtMultimediaWidgets import QVideoWidget
 
 from .icon import CustomIconProvider
-from .utils import flat_thumbnail_name, SUPPORTED_EXT, thumbnail_path
-from .thumbnails import save_thumbnail_png
+from .utils import flat_thumbnail_name, append_error_report, SUPPORTED_EXT, thumbnail_path, error_report_path
+from .thumbnails import save_gif_thumbnail, save_thumbnail_png 
 import os
+import traceback
+import datetime
+from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
+from PySide6.QtMultimediaWidgets import QVideoWidget
 import maya.cmds as cmds
 
 class FolderNavWidget(QtWidgets.QWidget):
@@ -66,6 +74,29 @@ class FolderNavWidget(QtWidgets.QWidget):
         self.file_model.setIconProvider(self._icon_provider)
         #self.file_model.setFilter(QtCore.QDir.Files | QtCore.QDir.NoDotAndDotDot)
 
+
+        # Video preview widget (AVI hover preview) 
+        self._video_widget = QVideoWidget(self)
+        self._video_widget.setWindowFlags(
+            QtCore.Qt.ToolTip | QtCore.Qt.WindowStaysOnTopHint
+        )
+        self._video_widget.setFixedSize(502, 502)
+        self._video_widget.hide()
+
+        self._media_player = QMediaPlayer(self)
+        self._audio_output = QAudioOutput(self)
+        self._audio_output.setVolume(0.0)  # mute
+        self._media_player.setAudioOutput(self._audio_output)
+        self._media_player.setVideoOutput(self._video_widget)
+        self._media_player.setLoops(QMediaPlayer.Infinite)
+
+        # hover timer to avoid flicker
+        self._hover_timer = QtCore.QTimer(self)
+        self._hover_timer.setSingleShot(True)
+        self._hover_timer.setInterval(100)  # ms delay before showing preview
+        self._hover_timer.timeout.connect(self._on_hover_timeout)
+
+
         # apply name filter for supported extensions
         name_filters = ["*{}".format(ext) for ext in SUPPORTED_EXT]
         self.file_model.setNameFilters(name_filters)
@@ -82,6 +113,9 @@ class FolderNavWidget(QtWidgets.QWidget):
         self.list_view.setGridSize(QtCore.QSize(120, 140))
 
         self.list_view.setMovement(QtWidgets.QListView.Static)
+        # install event filter on the list view viewport
+        self.list_view.setMouseTracking(True)
+        self.list_view.viewport().installEventFilter(self)
         splitter.addWidget(self.list_view)
 
         # Bottom: status / selected path
@@ -99,6 +133,81 @@ class FolderNavWidget(QtWidgets.QWidget):
         # expose splitter children for later use
         self.splitter = splitter
 
+
+    def eventFilter(self, obj, event):
+      
+        if obj is self.list_view.viewport():
+            if event.type() == QtCore.QEvent.MouseMove:
+                idx = self.list_view.indexAt(event.pos())
+                self._last_hover_pos = event.pos()
+                self._hover_timer.stop()
+                if idx.isValid():
+                    try:
+                        self._hover_timer.timeout.disconnect()
+                    except TypeError:
+                        pass
+                    # Store current index
+                    self._hover_index = idx
+
+                    self._hover_timer.timeout.connect(self._on_hover_timeout)
+                    self._hover_timer.start()
+                else:
+                    self._hide_video_preview()
+
+            elif event.type() in (QtCore.QEvent.Leave, QtCore.QEvent.FocusOut):
+                self._hover_timer.stop()
+                self._hide_video_preview()
+
+        return super().eventFilter(obj, event)
+
+
+
+    def _hide_video_preview(self):
+        self._media_player.stop()
+        self._media_player.setSource(QtCore.QUrl())  # clears the source
+        self._video_widget.hide()
+
+
+    def _on_hover_timeout(self):
+        # Ensure index still valid and mouse is still over it
+        idx = getattr(self, "_hover_index", None)
+        if not idx or not idx.isValid():
+            return
+
+        rect = self.list_view.visualRect(idx)
+        if not rect.contains(self._last_hover_pos):
+            self._hide_video_preview()
+            return
+
+        self._show_video_preview(idx)
+
+
+    def _show_video_preview(self, index):
+        file_path = self.file_model.filePath(index)
+        if not os.path.isfile(file_path):
+            self._hide_video_preview()
+            return
+
+
+        thumb_name = flat_thumbnail_name(file_path)
+        avi_path = os.path.join(thumbnail_path, thumb_name).replace(".png", ".avi")
+
+        if not os.path.exists(avi_path):
+            self._hide_video_preview()
+            return
+
+        # Position near mouse
+        global_pos = self.list_view.viewport().mapToGlobal(self._last_hover_pos)
+        self._video_widget.move(global_pos + QtCore.QPoint(16, 16))
+
+        # Load & play
+        self._media_player.stop()
+        self._media_player.setSource(QtCore.QUrl.fromLocalFile(avi_path))
+        self._media_player.play()
+
+        self._video_widget.show()
+
+
     def _connect_signals(self):
         # Browse button
         self.browse_btn.clicked.connect(self.on_browse)
@@ -108,9 +217,9 @@ class FolderNavWidget(QtWidgets.QWidget):
         self.path_edit.returnPressed.connect(self.on_path_entered)
         # Double-click file (future: import)
         self.list_view.doubleClicked.connect(self.on_file_double_click)
-
+        # Generate all thumbnails button
         self.gen_all_btn.clicked.connect(self.generate_all_thumbnails_flat)
-
+   
 
     # Slots 
     def on_browse(self):
@@ -118,6 +227,7 @@ class FolderNavWidget(QtWidgets.QWidget):
         folder = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Folder", start)
         if folder:
             self.set_folder(folder)
+
 
     def on_path_entered(self):
         path = self.path_edit.text().strip()
@@ -199,9 +309,22 @@ class FolderNavWidget(QtWidgets.QWidget):
 
             try:
                 save_thumbnail_png(file_path, thumb_path)
+                save_gif_thumbnail(file_path, thumb_path.replace(".png", ".avi"))
                 generated += 1
             except Exception as e:
                 print("Thumbnail failed:", file_path, e)
+                error_entry = {
+                    "maya_version": cmds.about(version=True),
+                    "batch_mode": cmds.about(batch=True),
+                    "user": os.getlogin(),
+                    "model": file_path,
+                    "png": thumb_path,
+                    "error": str(e),
+                    "traceback": traceback.format_exc(),
+                    "created_at": datetime.utcnow().isoformat() + "Z"
+                }
+
+                append_error_report(error_report_path, error_entry)
 
             progress.setValue(row + 1)
 
