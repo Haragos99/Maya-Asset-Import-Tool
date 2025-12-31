@@ -176,7 +176,8 @@ class FolderNavWidget(QtWidgets.QWidget):
         progress.setValue(0)
 
         generated = 0
-
+        current_panel = cmds.getPanel(withFocus=True)
+        current_widget = QtWidgets.QApplication.focusWidget()
         for row in range(row_count):
             # Allow UI updates + cancel
             QtWidgets.QApplication.processEvents()
@@ -203,6 +204,14 @@ class FolderNavWidget(QtWidgets.QWidget):
                 print("Thumbnail failed:", file_path, e)
 
             progress.setValue(row + 1)
+
+            def restore_focus():
+                if current_panel:
+                    cmds.setFocus(current_panel)
+                if current_widget:
+                    current_widget.setFocus(QtCore.Qt.OtherFocusReason)
+
+        cmds.evalDeferred(restore_focus)
 
         progress.close()
         self.status.setText("Generated {} thumbnails".format(generated))

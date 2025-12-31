@@ -16,3 +16,4 @@ print("Thumbnail folder:", THUMBNAIL_DIR)
 
 
 thumbnail_path = r"C:/Users/Geri/Documents/Projects/CG/Asset-Import-Tool/thumbnails"
+error_report_path = "thumbnail_errors.json"
