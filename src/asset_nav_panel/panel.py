@@ -120,11 +120,26 @@ class FolderNavWidget(QtWidgets.QWidget):
 
         # Bottom: status / selected path
         bottom_layout = QtWidgets.QHBoxLayout()
+        bottom_layout.setSpacing(2)                 # space between widgets
+        bottom_layout.setContentsMargins(2, 0, 2, 0) # left, top, right, bottom
+
         self.selected_label = QtWidgets.QLabel("Selected folder: ")
         self.status = QtWidgets.QLabel("")
+
         bottom_layout.addWidget(self.selected_label)
         bottom_layout.addStretch()
         bottom_layout.addWidget(self.status)
+
+
+        self.selected_label.setSizePolicy(
+            QtWidgets.QSizePolicy.Maximum,
+            QtWidgets.QSizePolicy.Fixed
+        )
+        self.status.setSizePolicy(
+            QtWidgets.QSizePolicy.Maximum,
+            QtWidgets.QSizePolicy.Fixed
+        )
+
 
         main_layout.addLayout(top_row)
         main_layout.addWidget(splitter)
@@ -190,7 +205,7 @@ class FolderNavWidget(QtWidgets.QWidget):
 
 
         thumb_name = flat_thumbnail_name(file_path)
-        avi_path = os.path.join(thumbnail_path, thumb_name).replace(".png", ".avi")
+        avi_path = os.path.join(thumbnail_path, thumb_name) + ".avi"
 
         if not os.path.exists(avi_path):
             self._hide_video_preview()
@@ -309,7 +324,7 @@ class FolderNavWidget(QtWidgets.QWidget):
 
             try:
                 save_thumbnail_png(file_path, thumb_path)
-                save_gif_thumbnail(file_path, thumb_path.replace(".png", ".avi"))
+                save_gif_thumbnail(file_path, thumb_path + ".avi")
                 generated += 1
             except Exception as e:
                 print("Thumbnail failed:", file_path, e)

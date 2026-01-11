@@ -9,9 +9,11 @@ import asset_nav_panel
 import asset_nav_panel.panel
 import asset_nav_panel.thumbnails
 import asset_nav_panel.icon
+import asset_nav_panel.utils
 
 importlib.reload(asset_nav_panel.icon)
 importlib.reload(asset_nav_panel.thumbnails)
+importlib.reload(asset_nav_panel.utils)
 importlib.reload(asset_nav_panel.panel)
 importlib.reload(asset_nav_panel)
 

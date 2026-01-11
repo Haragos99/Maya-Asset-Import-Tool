@@ -4,7 +4,7 @@ import os
 
 def flat_thumbnail_name(file_path):
         safe = file_path.replace(":", "").replace("\\", "__").replace("/", "__")
-        return safe + ".png"
+        return safe 
 
 
 def append_error_report(report_path, entry):
