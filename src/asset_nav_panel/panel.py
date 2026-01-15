@@ -23,6 +23,9 @@ class FolderNavWidget(QtWidgets.QWidget):
         super(FolderNavWidget, self).__init__(parent)
         self.setWindowTitle("Asset Folder Navigator")
         self.resize(900, 480)
+        self.setWindowFlags(
+            QtCore.Qt.WindowStaysOnTopHint
+        )
         self._build_ui()
         self._connect_signals()
 
