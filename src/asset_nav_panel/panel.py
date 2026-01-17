@@ -21,7 +21,7 @@ except Exception:
 from .icon import CustomIconProvider
 from .utils import flat_thumbnail_name, append_error_report, SUPPORTED_EXT, thumbnail_path, error_report_path
 from .thumbnails import save_gif_thumbnail, save_thumbnail_png
-
+from .analyze_panel import show_analyze_panel
 
 class FolderNavWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -29,7 +29,6 @@ class FolderNavWidget(QtWidgets.QWidget):
         self.setWindowTitle("Asset Folder Navigator")
         self.resize(900, 480)
 
-        # keep on-top tool (optional)
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
         self._build_ui()
@@ -120,7 +119,7 @@ class FolderNavWidget(QtWidgets.QWidget):
         try:
             self._media_player.setVideoOutput(self._video_widget)
         except Exception:
-            # some older combinations may require different wiring, ignore if fails
+            # some older combinations  ignore if fails
             pass
 
         # loop if supported (PySide6 has setLoops)
@@ -225,6 +224,7 @@ class FolderNavWidget(QtWidgets.QWidget):
         except Exception:
             pass
 
+
     def _on_hover_timeout(self):
         idx = getattr(self, "_hover_index", None)
         if not idx or not idx.isValid():
@@ -236,6 +236,7 @@ class FolderNavWidget(QtWidgets.QWidget):
             return
 
         self._show_video_preview(idx)
+
 
     def _show_video_preview(self, index):
         file_path = self.file_model.filePath(index)
@@ -334,8 +335,7 @@ class FolderNavWidget(QtWidgets.QWidget):
             QtWidgets.QMessageBox.information(self, "Analyze", "No assets selected.")
             return
         print("ANALYZE", paths)
-        # call your analyze UI / logic here
-        # show_analyze_panel(paths, parent=self)
+        show_analyze_panel(paths, parent=self)
 
     def generate_all_thumbnails_flat(self, force=False):
         os.makedirs(thumbnail_path, exist_ok=True)
