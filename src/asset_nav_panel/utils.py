@@ -1,4 +1,5 @@
 import asset_nav_panel
+from pathlib import Path
 import json
 import os
 
@@ -25,14 +26,12 @@ def append_error_report(report_path, entry):
         json.dump(data, f, indent=4)
 
 
-SUPPORTED_EXT = [".obj", ".fbx", ".ma"]
+SUPPORTED_EXT = [".obj", ".fbx", ".ma", ".usd"]
 
-PROJECT_ROOT = os.path.dirname(os.path.abspath(asset_nav_panel.__file__))
+PROJECT_ROOT = Path(asset_nav_panel.__file__).resolve().parents[2]
 THUMBNAIL_DIR = os.path.join(PROJECT_ROOT, "thumbnails")
 
 print("Project root:", PROJECT_ROOT)
 print("Thumbnail folder:", THUMBNAIL_DIR)
 
-
-thumbnail_path = r"C:/Users/Geri/Documents/Projects/CG/Asset-Import-Tool/thumbnails"
-error_report_path = "thumbnail_errors.json"
+error_report_path = PROJECT_ROOT / "thumbnail_errors.json"

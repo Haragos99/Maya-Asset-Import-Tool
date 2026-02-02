@@ -1,7 +1,7 @@
 import sys
 import importlib
 
-DEV_SRC = r"C:/Dev/Maya-Asset-Import-Tool/src/"
+DEV_SRC = r"PATH_TO_YOUR_DEV_SRC_DIRECTORY"
 if DEV_SRC not in sys.path:
     sys.path.append(DEV_SRC)
 

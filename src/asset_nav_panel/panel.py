@@ -19,7 +19,7 @@ except Exception:
     IS_PYSIDE2 = True
 
 from .icon import CustomIconProvider
-from .utils import flat_thumbnail_name, append_error_report, SUPPORTED_EXT, thumbnail_path, error_report_path
+from .utils import flat_thumbnail_name, append_error_report, SUPPORTED_EXT, THUMBNAIL_DIR, error_report_path
 from .thumbnails import save_gif_thumbnail, save_thumbnail_png
 from .analyze_panel import show_analyze_panel
 
@@ -76,7 +76,7 @@ class FolderNavWidget(QtWidgets.QWidget):
         # Right: file list
         self.file_model = QtWidgets.QFileSystemModel()
         self._icon_provider = CustomIconProvider(
-            thumbnail_root=thumbnail_path,
+            thumbnail_root=THUMBNAIL_DIR,
             icon_size=96
         )
         self.file_model.setIconProvider(self._icon_provider)
@@ -245,7 +245,7 @@ class FolderNavWidget(QtWidgets.QWidget):
             return
 
         thumb_name = flat_thumbnail_name(file_path)
-        avi_path = os.path.join(thumbnail_path, thumb_name) + ".avi"
+        avi_path = os.path.join(THUMBNAIL_DIR, thumb_name) + ".avi"
 
         if not os.path.exists(avi_path):
             self._hide_video_preview()
@@ -338,7 +338,7 @@ class FolderNavWidget(QtWidgets.QWidget):
         show_analyze_panel(paths, parent=self)
 
     def generate_all_thumbnails_flat(self, force=False):
-        os.makedirs(thumbnail_path, exist_ok=True)
+        os.makedirs(THUMBNAIL_DIR, exist_ok=True)
         root_index = self.list_view.rootIndex()
         if not root_index.isValid():
             return
@@ -365,7 +365,7 @@ class FolderNavWidget(QtWidgets.QWidget):
                 progress.setValue(row + 1)
                 continue
             thumb_name = flat_thumbnail_name(file_path)
-            thumb_path = os.path.join(thumbnail_path, thumb_name)
+            thumb_path = os.path.join(THUMBNAIL_DIR, thumb_name)
             if os.path.exists(thumb_path) and not force:
                 progress.setValue(row + 1)
                 continue
