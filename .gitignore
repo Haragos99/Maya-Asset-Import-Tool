@@ -7,6 +7,8 @@ __pycache__/
 thumbnails/
 *.cache/
 
+*.json
+
 # Maya temp files
 *.ma1
 *.ma2
