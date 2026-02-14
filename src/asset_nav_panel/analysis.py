@@ -3,7 +3,6 @@ import maya.cmds as cmds
 import maya.api.OpenMaya as om
 
 
-#Open it not in an Maya viwe port
 def gather_mesh_stats(shape):
     sel = om.MSelectionList()
     sel.add(shape)

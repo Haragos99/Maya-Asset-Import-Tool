@@ -309,7 +309,7 @@ class FolderNavWidget(QtWidgets.QWidget):
             self.set_folder(path)
         else:
             self.status.setText("Invalid folder: {}".format(path))
-
+    # 
     def set_folder(self, folder_path):
         self.path_edit.setText(folder_path)
         self.selected_label.setText("Selected folder: {}".format(folder_path))
@@ -322,6 +322,7 @@ class FolderNavWidget(QtWidgets.QWidget):
             self.list_view.setRootIndex(file_index)
         self.status.setText("Found: {} files".format(self._count_files(folder_path)))
 
+    # refresh the file icons
     def refresh_icon(self):
         self.file_model.setIconProvider(self._icon_provider)
         self.list_view.viewport().update()
@@ -337,6 +338,8 @@ class FolderNavWidget(QtWidgets.QWidget):
         print("ANALYZE", paths)
         show_analyze_panel(paths, parent=self)
 
+
+    # Genereta GIF and PNG thumbnail
     def generate_all_thumbnails_flat(self, force=False):
         os.makedirs(THUMBNAIL_DIR, exist_ok=True)
         root_index = self.list_view.rootIndex()
@@ -400,7 +403,7 @@ class FolderNavWidget(QtWidgets.QWidget):
         cmds.file(new=True, force=True)
         self.refresh_icon()
 
-    def on_tree_selection_changed(self, current, previous):
+    def on_tree_selection_changed(self, current):
         path = self.dir_model.filePath(current)
         if path:
             self.set_folder(path)

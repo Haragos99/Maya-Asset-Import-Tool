@@ -75,6 +75,14 @@ def save_gif_thumbnail(
     size= 800,
     frames=24
 ):
+    """
+    Import a model and save a single GIF thumbnail.
+
+    :param model_path: path to .obj / .fbx / .ma
+    :param gif_path: output .png path
+    :param size: width/height of thumbnail
+    :param frames: frames of  thr gif
+    """
     temp_movie = gif_path
     cmds.file(new=True, force=True)
     cmds.file(model_path, i=True, ignoreVersion=True)
