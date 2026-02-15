@@ -125,4 +125,42 @@ class MayaThumbnailService:
     def import_file(self, file_path):
         """Import a file into the current scene (for double-click import)"""
         self.import_model(file_path)
+
+    def get_maya_panel(self):
+        """Return maya panel"""
+        return cmds.getPanel(withFocus=True)
+    
+    def restore_focus_deferred(self, maya_panel, qt_widget):
+        """
+        Restore focus to Maya panel and Qt widget.
+        Uses evalDeferred to ensure it happens after Maya operations complete.
+        
+        Args:
+            maya_panel: Maya panel name to restore
+            qt_widget: Qt widget to restore focus to
+        """
+        # Import Qt here to avoid circular dependency
+        try:
+            from PySide6 import QtCore
+        except:
+            from PySide2 import QtCore
+        
+        def restore():
+            if maya_panel:
+                try:
+                    cmds.setFocus(maya_panel)
+                except:
+                    pass
+            
+            if qt_widget:
+                try:
+                    qt_widget.setFocus(QtCore.Qt.OtherFocusReason)
+                except:
+                    pass
+        
+        cmds.evalDeferred(restore)
+
+    def get_maya_infos():
+        return (cmds.about(version=True),cmds.about(batch=True))
+
   

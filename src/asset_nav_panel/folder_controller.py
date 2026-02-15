@@ -13,7 +13,8 @@ except Exception:
 import os
 import traceback
 import datetime
-import maya.cmds as cmds
+
+from asset_nav_panel import maya_thumbnail_mvc
 
 from .maya_thumbnail_service import MayaThumbnailService
 from .analyze_panel import show_analyze_panel
@@ -39,7 +40,7 @@ class FolderNavController:
             ui: FolderNavWidget instance
         """
         self.ui = ui
-        self.thumb_service = MayaThumbnailService()
+        self.maya_service = MayaThumbnailService()
         
         self._connect_signals()
 
@@ -60,7 +61,7 @@ class FolderNavController:
             file_path: Path to file to import
         """
         try:
-            self.thumb_service.import_file(file_path)
+            self.maya_service.import_file(file_path)
             self.ui.set_status(f"Imported: {os.path.basename(file_path)}")
         except Exception as e:
             self.ui.set_status(f"Import failed: {str(e)}")
@@ -116,7 +117,7 @@ class FolderNavController:
         progress.setValue(0)
 
         generated = 0
-        current_panel = cmds.getPanel(withFocus=True)
+        current_panel = self.maya_service.get_maya_panel()
         current_widget = QtWidgets.QApplication.focusWidget()
 
         for row in range(row_count):
@@ -141,14 +142,14 @@ class FolderNavController:
 
             try:
                 # Generate PNG thumbnail
-                self.thumb_service.generate_png_thumbnail(
+                self.maya_service.generate_png_thumbnail(
                     model_path=file_path,
                     png_path=thumb_path,
                     size=256
                 )
                 
                 # Generate turntable movie
-                self.thumb_service.generate_turntable_movie(
+                self.maya_service.generate_turntable_movie(
                     model_path=file_path,
                     movie_path=thumb_path + ".avi",
                     size=800,
@@ -163,18 +164,10 @@ class FolderNavController:
 
             progress.setValue(row + 1)
 
-        # Restore focus
-        def restore_focus():
-            if current_panel:
-                cmds.setFocus(current_panel)
-            if current_widget:
-                current_widget.setFocus(QtCore.Qt.OtherFocusReason)
-
-        cmds.evalDeferred(restore_focus)
-        progress.close()
-
+        # Restore focus using service
+        self.maya_service.restore_focus_deferred(current_panel, current_widget)
         self.ui.set_status(f"Generated {generated} thumbnails")
-        cmds.file(new=True, force=True)
+        self.maya_service.reset_scene()
         self.ui.refresh_icons()
 
     def _log_thumbnail_error(self, file_path, thumb_path, error):
@@ -186,9 +179,11 @@ class FolderNavController:
             thumb_path: Intended thumbnail path
             error: Exception that occurred
         """
+        version, batc_mode = self.maya_service.get_maya_infos()
+
         error_entry = {
-            "maya_version": cmds.about(version=True),
-            "batch_mode": cmds.about(batch=True),
+            "maya_version": version,
+            "batch_mode": batc_mode,
             "user": os.getlogin(),
             "model": file_path,
             "png": thumb_path,
