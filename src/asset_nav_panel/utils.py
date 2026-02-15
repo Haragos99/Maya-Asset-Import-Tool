@@ -1,9 +1,11 @@
+"""Utility functions and constants"""
 import asset_nav_panel
 from pathlib import Path
 import json
 import os
 
 def flat_thumbnail_name(file_path):
+        """Convert file path to safe thumbnail name"""
         safe = file_path.replace(":", "").replace("\\", "__").replace("/", "__")
         return safe 
 

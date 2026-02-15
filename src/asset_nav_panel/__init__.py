@@ -1,11 +1,10 @@
 """
 Asset Nav Panel
 Maya folder navigator with thumbnail support.
-"""
 
-from .panel import show, FolderNavWidget
+"""
+from .panel import show
 
 __all__ = [
-    "show",
-    "FolderNavWidget",
+    "show"
 ]
